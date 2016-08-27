@@ -1,0 +1,25 @@
+{
+  "name": "haley",
+  "homepage": "https://github.com/vital-ai/haley-js-bower",
+  "authors": [
+    "hadfield <marc@vital.ai>"
+  ],
+  "description": "haley client to haley ai service",
+  "main": "index.js",
+  "keywords": [
+    "ai",
+    "artificial",
+    "intelligence",
+    "haley",
+    "chatbot",
+    "vital"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
