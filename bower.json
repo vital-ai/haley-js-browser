@@ -4,6 +4,11 @@
   "authors": [
     "hadfield <marc@vital.ai>"
   ],
+  "dependencies": {
+    "sockjs-client": "^1.1.1",
+    "jquery": ">1.0.0",
+    "jquery.cookie": ">1.4.0"
+  },
   "description": "haley client to haley ai service",
   "main": "index.js",
   "keywords": [
