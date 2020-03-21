@@ -4,6 +4,13 @@
  * @param eventBusURL - if null then current window url protocol://host:port/eventbus will be used 
  * @param successCB
  * @param errorCB
+ * @param options: 
+ * 		{
+ * 			logger: (default console), 
+ * 			loggingEnabled: (default false),
+ * 			disconnectOnWebsocketLimitExceeded: (default false),
+ * 			websocketLimitExceededHandler: (default null)
+ *		}
  * @returns
  */
 
@@ -23,27 +30,37 @@ if(module) {
 }
 */
 
-VitalService = function(address, eventbusURL, successCB, errorCB) {
+VitalService = function(address, eventbusURL, successCB, errorCB, options) {
 
-	if(module) {
+	if(typeof(module) !== 'undefined') {
 		
 		if( typeof(tv4) === 'undefined' ) {
 
 			VITAL_JSON_SCHEMAS = [];
 			
-			VITAL_LOGGING = true;
-			
 			tv4 = require(__dirname + '/tv4.min.js');
 		
+			LRUCache = require(__dirname + '/lru.js').LRUCache;
 			
-			require(__dirname + '/vital-core-0.2.304.js');
+			require(__dirname + '/vital-core-0.2.304.js')
+			require(__dirname + '/vital-0.2.304.js')
 			
-			require(__dirname + '/vital-0.2.304.js');
+			var fs = require('fs');
 			
-			require(__dirname + '/vital-aimp-0.1.0.js');
+			var items = fs.readdirSync(__dirname + '/domains');
 			
-			require(__dirname + '/haley-0.1.0.js');
+			for(var i = 0 ; i < items.length; i++) {
+				var file = items[i];
+				console.log("Loading domain file: " + file)
+				require(__dirname + '/domains/' + file);
+			}
 			
+//			require(__dirname + '/vital-nlp-0.2.304.js')
+//			require(__dirname + '/vital-social-0.2.304.js')
+//			require(__dirname + '/vital-aimp-0.1.0.js')
+//			require(__dirname + '/haley-0.1.0.js')
+//			require(__dirname + '/haley-shopping-0.1.0.js')
+					
 			var import1 = require(__dirname + '/vitalservice-json-0.2.304.js');
 			
 			vitaljs = import1.vitaljs;
@@ -58,10 +75,48 @@ VitalService = function(address, eventbusURL, successCB, errorCB) {
 		
 	}
 	
-	//the vitalservice is initialized asynchronously
-	this.impl = new VitalServiceWebsocketImpl(address, 'service', eventbusURL, successCB, errorCB);
+	var _logger = console;
+	
+	var _loggingEnabled = false;
+	
+	var _disconnectOnWebsocketLimitExceeded = false;
+	
+	var _websocketLimitExceededHandler = null;
+	
+	if(options != null) {
+		if(options.logger != null) {
+			_logger = options.logger;
+		}
+		if(options.loggingEnabled != null) {
+			_loggingEnabled = options.loggingEnabled;
+		}
+		if(options.disconnectOnWebsocketLimitExceeded != null) {
+			_disconnectOnWebsocketLimitExceeded = options.disconnectOnWebsocketLimitExceeded;
+		}
+		if(options.websocketLimitExceededHandler != null) {
+			_websocketLimitExceededHandler = options.websocketLimitExceededHandler;
+		}
+		if(options.impl != null) {
+			_logger.warn("Overriding default websocket implementation");
+			this.impl = options.impl;
+		}
+	}
+	
+	//default is console
+	this.logger = _logger;
 	
 	this.NO_TRANSACTION = null;
+	
+	if(this.impl == null) {
+
+		//the vitalservice is initialized asynchronously
+		this.impl = new VitalServiceWebsocketImpl(address, 'service', eventbusURL, successCB, errorCB, this.logger, _loggingEnabled);
+		this.impl.disconnectOnWebsocketLimitExceeded = _disconnectOnWebsocketLimitExceeded;
+		this.impl.websocketLimitExceededHandler = _websocketLimitExceededHandler;
+		this.impl.newConnection();
+		
+	}
+	
 	
 }
 
@@ -77,6 +132,16 @@ VitalService.VERTX_STREAM_SUBSCRIBE = 'vertx-stream-subscribe';
 VitalService.VERTX_STREAM_UNSUBSCRIBE = 'vertx-stream-unsubscribe';
 
 
+
+VitalService.prototype.setLogger = function(logger){
+	if(logger == null) throw new Error("logger cannot be null"); 
+	this.impl.logger = logger;
+	this.logger = logger;
+}
+
+VitalService.prototype.getLogger = function() {
+	return this.logger;
+}
 
 //non - api
 
@@ -101,6 +166,28 @@ VitalService.prototype.getAppSessionID = function() {
 	return this.impl.getAppSessionID();
 }
 
+
+//bulkExport(VitalSegment, OutputStream)
+//bulkImport(VitalSegment, InputStream)
+
+/**
+ * Destroy vitalservice session cookie
+ */
+VitalService.prototype.destroySessionCookie = function() {
+	this.impl.destroySessionCookie();
+}
+
+/**
+ * Sets auth session expired handler. 
+ * Handler returning false prevent further processing.
+ */
+VitalService.prototype.setAuthSessionExpiredHandler = function(handler) {
+	this.impl.authSessionExpiredHandler = handler;
+}
+
+VitalService.prototype.getAuthSessionExpiredHandler = function() {
+	return this.impl.authSessionExpiredHandler;
+}
 
 //bulkExport(VitalSegment, OutputStream)
 //bulkImport(VitalSegment, InputStream)
@@ -149,7 +236,10 @@ VitalService.prototype.callFunction = function(functionName, paramsMap, successC
 	this.impl.callMethod('callFunction', [functionName, paramsMap], successCB, errorCB);
 }
 
-//close()
+//close() //vital status?
+VitalService.prototype.close = function(successCB, errorCB) {
+	this.impl.close(successCB, errorCB);
+}
 
 VitalService.prototype.commitTransaction = function(transaction, successCB, errorCB) {
 	this.impl.callMethod('commitTransaction', [transaction], successCB, errorCB);
@@ -170,7 +260,7 @@ VitalService.prototype.delete_ = function() {
 	
 	var l = arguments.length;
 	if(l < 3 || l > 4) {
-		console.error("Expected 3 or 4 arguments - see documentation");
+		this.logger.error("Expected 3 or 4 arguments - see documentation");
 		return;
 	}
 	
@@ -196,7 +286,7 @@ VitalService.prototype.deleteExpanded = function() {
 	
 	var l = arguments.length;
 	if(l < 3 || l > 5) {
-		console.error("Expected 3 to 5 arguments - see documentation");
+		this.logger.error("Expected 3 to 5 arguments - see documentation");
 		return;
 	}
 	
@@ -241,7 +331,7 @@ VitalService.prototype.deleteExpanded = function() {
 VitalService.prototype.deleteExpandedObject = function() {
 	var l = arguments.length;
 	if(l < 3 || l > 4) {
-		console.error("Expected 3 or 4 arguments - see documentation");
+		this.logger.error("Expected 3 or 4 arguments - see documentation");
 		return;
 	}
 	
@@ -266,7 +356,7 @@ VitalService.prototype.deleteExpandedObjects = function() {
 	
 	var l = arguments.length;
 	if(l < 4 || l > 5) {
-		console.error("Expected 4 or 5 arguments - see documentation");
+		this.logger.error("Expected 4 or 5 arguments - see documentation");
 		return;
 	}
 	
@@ -295,7 +385,7 @@ VitalService.prototype.deleteObject = function() {
 	
 	var l = arguments.length;
 	if(l < 3 || l > 4) {
-		console.error("Expected 3 or 4 arguments - see documentation");
+		this.logger.error("Expected 3 or 4 arguments - see documentation");
 		return;
 	}
 	
@@ -319,7 +409,7 @@ VitalService.prototype.deleteObjects = function() {
 	
 	var l = arguments.length;
 	if(l < 3 || l > 4) {
-		console.error("Expected 3 or 4 arguments - see documentation");
+		this.logger.error("Expected 3 or 4 arguments - see documentation");
 		return;
 	}
 	
@@ -417,7 +507,7 @@ VitalService.prototype.insert = function(VitalTransaction, vitalSegment, graphOb
 	
 	var l = arguments.length;
 	if(l < 4 || l > 5) {
-		console.error("Expected 4 or 5 arguments - see documentation");
+		this.logger.error("Expected 4 or 5 arguments - see documentation");
 		return;
 	}
 	
@@ -513,7 +603,7 @@ VitalService.prototype.save = function() {
 	var l = arguments.length; 
 	
 	if( l < 3 || l > 6) {
-		console.error("save method error, expected 3 to 6 arguments - see documentation");
+		this.logger.error("save method error, expected 3 to 6 arguments - see documentation");
 		return;
 	}
 	
@@ -611,7 +701,7 @@ VitalService.prototype.unloadSchema = function(schemaURI, successCB, errorCB) {
 }
 
 
-if(module) {
+if(typeof(module) !== 'undefined') {
 	
 	module.exports = VitalService;
 	
