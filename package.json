@@ -1,6 +1,6 @@
 {
   "name": "haley-js-browser",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "haley service for browser",
   "main": "index.js",
   "scripts": {
