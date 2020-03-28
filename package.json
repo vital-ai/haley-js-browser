@@ -1,10 +1,11 @@
 {
   "name": "haley-js-browser",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "haley service for browser",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx webpack --config webpack.config.js"
   },
   "repository": {
     "type": "git",

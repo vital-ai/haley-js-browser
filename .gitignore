@@ -1,0 +1,12 @@
+/webroot/js/domains.js
+package-lock.json
+.settings/
+.vertx/
+/conf/*.config
+/logs/
+/node_modules/
+target/
+settings/
+*.DS_Store
+*.config
+
