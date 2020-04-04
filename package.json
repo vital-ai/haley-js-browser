@@ -1,6 +1,7 @@
 {
-  "name": "haley-js-browser",
+  "name": "@vital-ai/haley-js-browser",
   "version": "0.0.8",
+
   "description": "haley service for browser",
   "main": "index.js",
   "scripts": {
@@ -11,7 +12,7 @@
     "type": "git",
     "url": "git+https://github.com/vital-ai/haley-js-browser.git"
   },
-  "author": "",
+  "author": "Marc Hadfield",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/vital-ai/haley-js-browser/issues"
