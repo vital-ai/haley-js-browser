@@ -1,6 +1,6 @@
 {
   "name": "@vital-ai/haley-js-browser",
-  "version": "0.0.9",
+  "version": "0.1.0",
 
   "description": "haley service for browser",
   "main": "index.js",
