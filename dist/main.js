@@ -88,10 +88,13 @@
 /* 0 */
 /***/ (function(module, exports) {
 
+const prefix = `${DOMAIN_SRC}` || `${PREFIX}js/vitalservice/domains/`;
+
 VITAL_DOMAINS.forEach(file => {
+    console.log('loading domain file: ', file);
     $.ajax({
         async: false,
-        url: `${DOMAIN_SRC}${file}`,
+        url: `${prefix}${file}`,
         dataType: "script"
     });
 });
