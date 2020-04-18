@@ -3,6 +3,14 @@ const path = require('path');
 
 const RED = '\x1b[31m%s\x1b[0m';
 const WEBROOT_DIR = process.env.npm_package_config_WEBROOT_DIR;
+
+const webrootAbsolute = path.join(__dirname, '../../../', WEBROOT_DIR);
+if (!fs.existsSync(webrootAbsolute)){
+    console.error(RED, `Directory ${webrootAbsolute} does not exist`);
+    console.error(RED, `Might be issue with the config of WEBROOT_DIR in package.json`);
+    return;
+}
+
 const COPY_TO_PATH = path.join(WEBROOT_DIR, 'haley-js-browser');
 
 const FOLDERS_TO_BE_CREATED = [
