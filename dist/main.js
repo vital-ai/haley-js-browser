@@ -97,10 +97,14 @@ VITAL_DOMAINS.forEach(file => {
         dataType: "script",
         success: function() {
             console.log('loaded file: ', file);
+        }, 
+        error: function() {
+            console.error(`loading file ${file} failed. installation tiem: ${TIME_DOMAIN_LIST_CREATED}`)
         }
     });
 });
 console.log('Loaded domains updated at: ', TIME_DOMAIN_LIST_CREATED);
+
 $.ajax({
     async: false,
     url: `${PREFIX}haley-js-browser/created-time.js`,
