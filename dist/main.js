@@ -88,15 +88,26 @@
 /* 0 */
 /***/ (function(module, exports) {
 
-const prefix = `${DOMAIN_SRC}` || `${PREFIX}js/vitalservice/domains/`;
 
 VITAL_DOMAINS.forEach(file => {
     console.log('loading domain file: ', file);
     $.ajax({
         async: false,
-        url: `${prefix}${file}`,
-        dataType: "script"
+        url: `${PREFIX}js/vitalservice/domains/${file}`,
+        dataType: "script",
+        success: function() {
+            console.log('loaded file: ', file);
+        }
     });
+});
+console.log('Loaded domains updated at: ', TIME_DOMAIN_LIST_CREATED);
+$.ajax({
+    async: false,
+    url: `${PREFIX}haley-js-browser/created-time.js`,
+    dataType: "script",
+    success: function() {
+        console.log(`Loaded vital installed at: ${TIME_VITAL_INSTALLED}`);
+    }
 });
 
 /***/ })

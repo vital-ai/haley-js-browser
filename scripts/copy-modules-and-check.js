@@ -2,7 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 const RED = '\x1b[31m%s\x1b[0m';
-const COPY_TO_PATH = process.env.npm_package_config_COPY_TO_PATH;
+const WEBROOT_DIR = process.env.npm_package_config_WEBROOT_DIR;
+const COPY_TO_PATH = path.join(WEBROOT_DIR, 'haley-js-browser');
 
 const FOLDERS_TO_BE_CREATED = [
     COPY_TO_PATH,
@@ -34,8 +35,9 @@ FOLDERS_TO_BE_CREATED.forEach(function(dir) {
     const absoluteDir = path.join(__dirname, '../../../', dir);
     if (!fs.existsSync(absoluteDir)){
         fs.mkdirSync(absoluteDir);
+        console.log(`created directory: ${absoluteDir}`);
     } else {
-        console.log(`${absoluteDir} already exist`);
+        console.log(`directory: ${absoluteDir} already exist`);
     }
 });
 
@@ -76,3 +78,12 @@ FILES_TO_BE_COPIED.forEach(function(file) {
     });
 });
 
+console.log('Record the time when Vital installed');
+const text = `TIME_VITAL_INSTALLED = "${new Date()}"`;
+const OUTPUT_DOMAINS_PATH = path.join(__dirname, '../../../', COPY_TO_PATH, 'created-time.js');
+fs.writeFile(OUTPUT_DOMAINS_PATH, text, {flag: 'w+'}, function (err) {
+    if(err) {
+        console.error(RED, err);
+        throw err;
+    }
+});
