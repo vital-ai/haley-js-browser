@@ -9,7 +9,7 @@ VITAL_DOMAINS.forEach(file => {
             console.log('loaded file: ', file);
         }, 
         error: function() {
-            console.error(`loading file ${file} failed. installation tiem: ${TIME_DOMAIN_LIST_CREATED}`)
+            console.error(`loading file ${file} failed. installation time: ${TIME_DOMAIN_LIST_CREATED}`)
         }
     });
 });
