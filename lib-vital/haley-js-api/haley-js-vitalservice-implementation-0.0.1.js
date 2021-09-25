@@ -230,20 +230,89 @@ HaleyAPIVitalServiceImpl.prototype.closeAllSessions = function(callback) {
 HaleyAPIVitalServiceImpl.prototype.close = function(callback) {
 	
 	var _this = this;
+
+	_this.reConnectLogin = _this.vitalService.impl.login; 
+
+	var afterUnauth = function() {
+		_this.vitalService.callFunction(VitalService.VERTX_STREAM_UNSUBSCRIBE, {streamName: _this.streamName}, function(succsessObj){
+			
+			if(_this.logEnabled) {
+				_this.logger.info("unsubscribed from stream " + _this.streamName, succsessObj); 
+			}
+						
+			afterUnsubscribed();
+			
+		}, function(errorObj) {
+			
+			_this.logger.error("Error when unsubscribing from stream", errorObj);
+			
+			callback(errorObj);
+			
+		});
+	}
+
+	var afterUnsubscribed = function() {
 	
-	this.vitalService.close(function(){
-		
-		_this.logger.info("haley api closed");
-		
-		callback(null);
-		
-	}, function(error){
-		
-		_this.logger.error(error);
-		
-		callback(error);
-		
-	});
+		_this.vitalService.callFunction(VitalService.JS_UNREGISTER_STREAM_HANDLER_WITHOUT_LOGOUT, {streamName: _this.streamName, handlerFunction: _this.handlerFunction}, function(succsessObj){
+			
+			if(_this.logEnabled) {
+				_this.logger.info('unregistered handler for stream ' + _this.streamName, succsessObj);
+			}
+			
+			// _this.loginAuthID = _this.vitalService.impl.appSessionID;
+			// _this.vitalService.impl.COOKIE_SESSION_ID = null;
+
+			HaleyAPIVitalServiceImpl.SINGLETON = null;
+			_this.haleySessionSingleton = null;
+			console.log('*** cleared haleysessionsingleton:', _this.haleySessionSingleton)
+			
+			_this._cleanup();
+			// callback();
+
+			
+
+			_this.vitalService.close(function(){
+
+				_this.logger.info('haley api closed');
+
+				// _this.vitalService.impl.newConnection();
+
+				_this.reConnect = true;
+
+				callback();
+				
+
+				// *** comment in to Test session watch dog reconnection
+				// sessionWatchdog.lastTimestamp = new Date().getTime();
+				// sessionWatchdog.lastResponseTime.text(sessionWatchdog.formatTime(new Date()));
+				// sessionWatchdog.refreshUI()
+				
+				
+				
+			}, function(error){
+				
+				_this.logger.error(error);
+				
+				callback(error);
+				
+			});
+			
+			
+		}, function(error){
+
+			_this.logger.error('couldn\'t deregister messages handler', error);
+			
+			callback(error);
+			
+		});
+
+	}
+	
+	afterUnauth();
+
+	
+
+	
 	
 }
 
@@ -624,6 +693,70 @@ HaleyAPIVitalServiceImpl.prototype.listChannels = function(haleySession, callbac
 		}
 		
 	});
+	
+}
+
+HaleyAPIVitalServiceImpl.prototype.reOpenSession = function(callback) {
+	if(this.haleySessionSingleton != null) {
+		callback('active session already detected');
+		return;
+	}
+	
+	if(this.logEnabled) {
+		this.logger.info('subscribing to stream ', this.streamName);
+	}
+	
+	var _this = this;
+
+	this.handlerFunction = function(msgRL){
+		_this._streamHandler(msgRL);
+	}
+
+	//first register stream handler
+	this.vitalService.callFunction(VitalService.JS_REGISTER_STREAM_HANDLER, {streamName: this.streamName, handlerFunction: this.handlerFunction}, function(succsessObj){
+		if(_this.logEnabled) {
+			_this.logger.info('registered handler to ' + _this.streamName, succsessObj);
+		}
+		
+		_this.haleySessionSingleton = new HaleySession(_this);
+
+		sessionWatchdog.haleySession = _this.haleySessionSingleton;
+
+		// console.log('*** haleySessionSingleton created:', _this.haleySessionSingleton);
+		// console.log('*** sessionWatchdog.haleySession created:', sessionWatchdog.haleySession);
+
+		_this.vitalService.callFunction(VitalService.VERTX_STREAM_SUBSCRIBE, {streamName: _this.streamName}, function(succsessObj){
+
+			if(_this.logEnabled) {
+				_this.logger.info("subscribed to stream " + _this.streamName, succsessObj); 
+			}
+
+			
+			if(_this.haleySessionSingleton.isAuthenticated()) {
+				_this._sendLoggedInMsg(function(error){
+			
+					if(_this.logEnabled) {
+						_this.logger.info("LoggedIn msg sent successfully");
+					}
+					
+					if(error) {
+						callback(error);
+					} else {
+						callback(null, _this.haleySessionSingleton);
+					}
+					
+				});
+			} else {
+				callback(null, _this.haleySessionSingleton);
+			}
+		}, function(error){
+
+			_this.logger.error('couldn\'t register messages handler', error);
+			
+			callback(error);
+			
+		})
+	})
 	
 }
 
