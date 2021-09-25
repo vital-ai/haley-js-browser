@@ -1,7 +1,6 @@
 {
   "name": "@vital-ai/haley-js-browser",
-  "version": "0.1.8",
-
+  "version": "0.1.9",
   "description": "haley service for browser",
   "main": "index.js",
   "scripts": {
@@ -17,5 +16,9 @@
   "bugs": {
     "url": "https://github.com/vital-ai/haley-js-browser/issues"
   },
-  "homepage": "https://github.com/vital-ai/haley-js-browser#readme"
+  "homepage": "https://github.com/vital-ai/haley-js-browser#readme",
+  "devDependencies": {
+    "webpack": "^5.54.0",
+    "webpack-cli": "^4.8.0"
+  }
 }

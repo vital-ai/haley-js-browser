@@ -7,10 +7,13 @@ module.exports = {
     filename: 'main.js',
     path: path.resolve(__dirname, 'dist'),
   },
-  node: {
-    fs: 'empty',
-    tls: 'empty', 
-    net: 'empty',
-    request: 'empty',
+  resolve: {
+    fallback: {
+      dgram: false,
+      fs: false,
+      net: false,
+      tls: false,
+      child_process: false
+    }
   }
 };
