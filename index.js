@@ -3,7 +3,7 @@ VITAL_DOMAINS.forEach(file => {
     console.log('loading domain file: ', file);
     $.ajax({
         async: false,
-        url: `${PREFIX}js/vitalservice/domains/${file}`,
+        url: `${PREFIX}haley-js-browser/lib-vital/vitalservice-js/domains/${file}`,
         dataType: "script",
         success: function() {
             console.log('loaded file: ', file);

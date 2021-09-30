@@ -12,7 +12,7 @@ if (!fs.existsSync(webrootAbsolute)){
 }
 
 const OUTPUT_DOMAINS_PATH = path.join(__dirname, '../../../', WEBROOT_DIR, 'js/domains.js');
-const DOMAINS_PATH = path.join(__dirname, '../../../', WEBROOT_DIR, 'js/vitalservice/domains');
+const DOMAINS_PATH = path.join(process.env.VITAL_HOME, 'domain-json-schema');
 
 if(!fs.existsSync(DOMAINS_PATH) || !fs.lstatSync(DOMAINS_PATH).isDirectory()) {
     console.error(RED, `${DOMAINS_PATH} does not exist`);
@@ -20,7 +20,7 @@ if(!fs.existsSync(DOMAINS_PATH) || !fs.lstatSync(DOMAINS_PATH).isDirectory()) {
 }
 
 const items = fs.readdirSync(DOMAINS_PATH);
-let text = 'VITAL_DOMAINS = ["' + items.join('", "') + '"];\n';
+let text = 'VITAL_DOMAINS = ["' + items.filter(s => s.endsWith('.js')).join('", "') + '"];\n';
 text += `TIME_DOMAIN_LIST_CREATED = "${new Date()}"`;
 fs.writeFile(OUTPUT_DOMAINS_PATH, text, {flag: 'w+'}, function (err) {
     if(err) {
