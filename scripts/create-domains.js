@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 const RED = '\x1b[31m%s\x1b[0m';
-const WEBROOT_DIR = process.env.npm_package_config_WEBROOT_DIR;
-const INSTALL_PATH_TO_PROJECT_FOLDER = process.env.npm_package_config_INSTALL_PATH_TO_PROJECT_FOLDER || '../../../../';
+const WEBROOT_DIR = process.env.npm_package_config_WEBROOT_DIR || process.env.npm_config_WEBROOT_DIR;
+const INSTALL_PATH_TO_PROJECT_FOLDER = process.env.npm_package_config_INSTALL_PATH_TO_PROJECT_FOLDER || process.env.npm_package_INSTALL_PATH_TO_PROJECT_FOLDER || '../../../../';
 
 const webrootAbsolute = path.join(__dirname, INSTALL_PATH_TO_PROJECT_FOLDER, WEBROOT_DIR);
 if (!fs.existsSync(webrootAbsolute)){
